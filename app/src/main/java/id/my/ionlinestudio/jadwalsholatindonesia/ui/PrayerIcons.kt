@@ -1,14 +1,11 @@
 package id.my.ionlinestudio.jadwalsholatindonesia.ui
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Brightness3
-import androidx.compose.material.icons.filled.WbCloudy
-import androidx.compose.material.icons.filled.WbSunny
-import androidx.compose.material.icons.filled.WbTwilight
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import id.my.ionlinestudio.jadwalsholatindonesia.R
 import id.my.ionlinestudio.jadwalsholatindonesia.ui.theme.WebSecondary
 
 @Composable
@@ -17,48 +14,20 @@ fun PrayerIcon(
     modifier: Modifier = Modifier,
     tint: Color = WebSecondary
 ) {
-    when (prayerKey.lowercase()) {
-        "subuh", "fajr" -> Icon(
-            imageVector = Icons.Default.WbTwilight,
-            contentDescription = "Subuh",
-            modifier = modifier,
-            tint = tint
-        )
-        "syuruq", "sunrise" -> Icon(
-            imageVector = Icons.Default.WbTwilight,
-            contentDescription = "Syuruq",
-            modifier = modifier,
-            tint = tint
-        )
-        "dzuhur", "dhuhr" -> Icon(
-            imageVector = Icons.Default.WbSunny,
-            contentDescription = "Dzuhur",
-            modifier = modifier,
-            tint = tint
-        )
-        "ashar", "asr" -> Icon(
-            imageVector = Icons.Default.WbCloudy,
-            contentDescription = "Ashar",
-            modifier = modifier,
-            tint = tint
-        )
-        "maghrib" -> Icon(
-            imageVector = Icons.Default.WbTwilight,
-            contentDescription = "Maghrib",
-            modifier = modifier,
-            tint = tint
-        )
-        "isya", "isha" -> Icon(
-            imageVector = Icons.Default.Brightness3,
-            contentDescription = "Isya",
-            modifier = modifier,
-            tint = tint
-        )
-        else -> Icon(
-            imageVector = Icons.Default.WbSunny,
-            contentDescription = "Prayer",
-            modifier = modifier,
-            tint = tint
-        )
+    val drawableRes = when (prayerKey.lowercase()) {
+        "subuh", "fajr" -> R.drawable.ic_prayer_subuh
+        "syuruq", "sunrise" -> R.drawable.ic_prayer_syuruq
+        "dzuhur", "dhuhr" -> R.drawable.ic_prayer_dzuhur
+        "ashar", "asr" -> R.drawable.ic_prayer_ashar
+        "maghrib" -> R.drawable.ic_prayer_maghrib
+        "isya", "isha" -> R.drawable.ic_prayer_isya
+        else -> R.drawable.ic_prayer_dzuhur
     }
+
+    Icon(
+        painter = painterResource(id = drawableRes),
+        contentDescription = prayerKey,
+        modifier = modifier,
+        tint = tint
+    )
 }
