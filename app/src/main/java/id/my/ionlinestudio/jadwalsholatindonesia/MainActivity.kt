@@ -43,6 +43,7 @@ import com.batoulapps.adhan.Prayer
 import com.batoulapps.adhan.PrayerTimes
 import id.my.ionlinestudio.jadwalsholatindonesia.ui.PrayerIcon
 import id.my.ionlinestudio.jadwalsholatindonesia.ui.PrayerViewModel
+import id.my.ionlinestudio.jadwalsholatindonesia.ui.QiblaDialogContent
 import id.my.ionlinestudio.jadwalsholatindonesia.ui.theme.*
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
@@ -177,7 +178,7 @@ fun PrayerScreen(
 
     // Modal Qibla
     if (showQiblaDialog) {
-        QiblaDialog(
+        QiblaDialogContent(
             cityName = cityName,
             qiblaDegree = qiblaDegree,
             onDismiss = { showQiblaDialog = false }
@@ -545,80 +546,6 @@ fun CitySearchDialog(
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text("Batal", color = WebTextSecondary)
-            }
-        }
-    )
-}
-
-@Composable
-fun QiblaDialog(
-    cityName: String,
-    qiblaDegree: Double,
-    onDismiss: () -> Unit
-) {
-    val roundedDegree = (qiblaDegree * 10).roundToInt() / 10.0
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = WebSurface,
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Explore, contentDescription = null, tint = WebPrimary)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Arah Kiblat - $cityName", color = WebTextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            }
-        },
-        text = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = "${roundedDegree}°",
-                    fontSize = 36.sp,
-                    fontWeight = FontWeight.Black,
-                    color = WebPrimary
-                )
-                Text(
-                    text = "Arah Kiblat dari Utara",
-                    fontSize = 13.sp,
-                    color = WebTextSecondary
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // Compass Dial Visualizer
-                Box(
-                    modifier = Modifier
-                        .size(160.dp)
-                        .clip(RoundedCornerShape(80.dp))
-                        .background(WebSurfaceVariant)
-                        .padding(12.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    // Compass Arrow pointing to Qibla Angle
-                    Icon(
-                        imageVector = Icons.Default.CompassCalibration,
-                        contentDescription = "Compass Needle",
-                        tint = WebSecondary,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .rotate(qiblaDegree.toFloat())
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Arahkan HP ke derajat $roundedDegree° dari arah Utara.",
-                    fontSize = 12.sp,
-                    color = WebTextSecondary,
-                    textAlign = TextAlign.Center
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Tutup", color = WebPrimary)
             }
         }
     )
