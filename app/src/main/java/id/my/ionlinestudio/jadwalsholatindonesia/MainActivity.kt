@@ -4,7 +4,9 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.BorderStroke
@@ -29,6 +31,7 @@ import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -76,6 +79,23 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val uiState by viewModel.uiState.collectAsState()
+
+            // Update status bar color to match app background
+            val statusBarColor = if (uiState.isDarkTheme) WebBackground else WebLightBackground
+            LaunchedEffect(uiState.isDarkTheme) {
+                enableEdgeToEdge(
+                    statusBarStyle = if (uiState.isDarkTheme) {
+                        SystemBarStyle.dark(statusBarColor.toArgb())
+                    } else {
+                        SystemBarStyle.light(statusBarColor.toArgb(), statusBarColor.toArgb())
+                    },
+                    navigationBarStyle = if (uiState.isDarkTheme) {
+                        SystemBarStyle.dark(statusBarColor.toArgb())
+                    } else {
+                        SystemBarStyle.light(statusBarColor.toArgb(), statusBarColor.toArgb())
+                    }
+                )
+            }
 
             JadwalSholatIndonesiaTheme(darkTheme = uiState.isDarkTheme) {
                 Surface(
