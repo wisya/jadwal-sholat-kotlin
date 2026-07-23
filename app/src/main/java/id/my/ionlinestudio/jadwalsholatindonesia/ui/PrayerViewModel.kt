@@ -26,7 +26,9 @@ import java.util.Locale
 data class PrayerUiState(
     val prayerTimes: PrayerTimes? = null,
     val locationText: String = "Mencari lokasi...",
-    val isLoading: Boolean = false
+    val cityName: String = "Yogyakarta",
+    val isLoading: Boolean = false,
+    val qiblaDegree: Double = 0.0
 )
 
 class PrayerViewModel : ViewModel() {
@@ -44,10 +46,14 @@ class PrayerViewModel : ViewModel() {
             elevation = userLocation.elevation
         )
 
+        val qibla = PrayerCalculator.calculateQiblaDirection(userLocation.latitude, userLocation.longitude)
+
         _uiState.update {
             it.copy(
                 prayerTimes = prayerTimes,
+                cityName = userLocation.cityName,
                 locationText = "${userLocation.cityName} (${userLocation.elevation.toInt()} mdpl)",
+                qiblaDegree = qibla,
                 isLoading = false
             )
         }
@@ -151,10 +157,14 @@ class PrayerViewModel : ViewModel() {
                 elevation = elevation
             )
 
+            val qibla = PrayerCalculator.calculateQiblaDirection(lat, lng)
+
             _uiState.update {
                 it.copy(
                     prayerTimes = prayerTimes,
+                    cityName = cityName,
                     locationText = "$cityName (${elevation.toInt()} mdpl)",
+                    qiblaDegree = qibla,
                     isLoading = false
                 )
             }

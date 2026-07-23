@@ -5,6 +5,7 @@ import com.batoulapps.adhan.CalculationParameters
 import com.batoulapps.adhan.Coordinates
 import com.batoulapps.adhan.Madhab
 import com.batoulapps.adhan.PrayerTimes
+import com.batoulapps.adhan.Qibla
 import com.batoulapps.adhan.data.DateComponents
 import java.util.Date
 import kotlin.math.roundToInt
@@ -44,5 +45,10 @@ object PrayerCalculator {
         val params = getParameters(elevation)
         val dateComponents = DateComponents.from(date)
         return PrayerTimes(coordinates, dateComponents, params)
+    }
+
+    fun calculateQiblaDirection(latitude: Double, longitude: Double): Double {
+        val coordinates = Coordinates(latitude, longitude)
+        return Qibla(coordinates).direction
     }
 }

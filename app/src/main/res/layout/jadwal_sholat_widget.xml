@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="horizontal"
     android:weightSum="5"
-    android:background="#1E3315"
+    android:background="#205108"
     android:padding="8dp">
 
     <LinearLayout
@@ -25,7 +25,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="--"
-            android:textColor="#FFB74D"
+            android:textColor="#86DB60"
+            android:textStyle="bold"
             android:textSize="16sp" />
     </LinearLayout>
 
@@ -47,7 +48,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="--"
-            android:textColor="#FFB74D"
+            android:textColor="#86DB60"
+            android:textStyle="bold"
             android:textSize="16sp" />
     </LinearLayout>
 
@@ -69,7 +71,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="--"
-            android:textColor="#FFB74D"
+            android:textColor="#86DB60"
+            android:textStyle="bold"
             android:textSize="16sp" />
     </LinearLayout>
 
@@ -91,7 +94,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="--"
-            android:textColor="#FFB74D"
+            android:textColor="#86DB60"
+            android:textStyle="bold"
             android:textSize="16sp" />
     </LinearLayout>
 
@@ -113,7 +117,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="--"
-            android:textColor="#FFB74D"
+            android:textColor="#86DB60"
+            android:textStyle="bold"
             android:textSize="16sp" />
     </LinearLayout>
 
