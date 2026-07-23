@@ -2,15 +2,12 @@ package id.my.ionlinestudio.jadwalsholatindonesia
 
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+import android.content.ComponentName
 import android.content.Context
 import android.widget.RemoteViews
-import com.batoulapps.adhan.CalculationMethod
-import com.batoulapps.adhan.Coordinates
-import com.batoulapps.adhan.Madhab
-import com.batoulapps.adhan.PrayerTimes
-import com.batoulapps.adhan.data.DateComponents
+import id.my.ionlinestudio.jadwalsholatindonesia.data.LocationPreferences
+import id.my.ionlinestudio.jadwalsholatindonesia.data.PrayerCalculator
 import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 
 class JadwalSholatWidget : AppWidgetProvider() {
@@ -23,6 +20,17 @@ class JadwalSholatWidget : AppWidgetProvider() {
             updateAppWidget(context, appWidgetManager, appWidgetId)
         }
     }
+
+    companion object {
+        fun updateAllWidgets(context: Context) {
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            val widgetComponent = ComponentName(context, JadwalSholatWidget::class.java)
+            val appWidgetIds = appWidgetManager.getAppWidgetIds(widgetComponent)
+            for (appWidgetId in appWidgetIds) {
+                updateAppWidget(context, appWidgetManager, appWidgetId)
+            }
+        }
+    }
 }
 
 internal fun updateAppWidget(
@@ -32,27 +40,15 @@ internal fun updateAppWidget(
 ) {
     val views = RemoteViews(context.packageName, R.layout.jadwal_sholat_widget)
 
-    // Calculate prayer times directly (Offline)
-    // For widget, we'll use a fixed location (e.g. Jakarta/Yogyakarta) or 0 elevation
-    // to ensure instantaneous update without network delays on the home screen.
-    val lat = -7.8014
-    val lng = 110.3644
-    val coordinates = Coordinates(lat, lng)
-    
-    val params = CalculationMethod.OTHER.parameters
-    params.fajrAngle = 20.0
-    params.ishaAngle = 18.0
-    params.madhab = Madhab.SHAFI
-    params.adjustments.fajr = 2
-    params.adjustments.sunrise = -2 
-    params.adjustments.dhuhr = 2
-    params.adjustments.asr = 2
-    params.adjustments.maghrib = 2 
-    params.adjustments.isha = 2
+    val locationPrefs = LocationPreferences(context)
+    val userLocation = locationPrefs.getLocation()
 
-    val date = DateComponents.from(Date())
-    val prayerTimes = PrayerTimes(coordinates, date, params)
-    
+    val prayerTimes = PrayerCalculator.calculatePrayerTimes(
+        latitude = userLocation.latitude,
+        longitude = userLocation.longitude,
+        elevation = userLocation.elevation
+    )
+
     val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
 
     views.setTextViewText(R.id.tv_subuh, formatter.format(prayerTimes.fajr))

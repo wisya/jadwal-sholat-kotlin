@@ -37,7 +37,6 @@ android {
     }
     buildFeatures {
         compose = true
-        viewBinding = true
     }
     lint {
         abortOnError = false
