@@ -23,24 +23,28 @@ import androidx.compose.material.icons.filled.CompassCalibration
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.NightsStay
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.batoulapps.adhan.Coordinates
 import com.batoulapps.adhan.Prayer
 import com.batoulapps.adhan.PrayerTimes
+import id.my.ionlinestudio.jadwalsholatindonesia.data.PrayerCalculator
 import id.my.ionlinestudio.jadwalsholatindonesia.ui.PrayerIcon
 import id.my.ionlinestudio.jadwalsholatindonesia.ui.PrayerViewModel
 import id.my.ionlinestudio.jadwalsholatindonesia.ui.QiblaDialogContent
@@ -50,7 +54,6 @@ import java.text.SimpleDateFormat
 import java.time.chrono.HijrahDate
 import java.time.format.DateTimeFormatter
 import java.util.*
-import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
 
@@ -72,21 +75,25 @@ class MainActivity : ComponentActivity() {
         viewModel.loadSavedLocation(this)
 
         setContent {
-            JadwalSholatIndonesiaTheme(darkTheme = true) {
+            val uiState by viewModel.uiState.collectAsState()
+
+            JadwalSholatIndonesiaTheme(darkTheme = uiState.isDarkTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = WebBackground
+                    color = MaterialTheme.colorScheme.background
                 ) {
-                    val uiState by viewModel.uiState.collectAsState()
-
                     PrayerScreen(
                         prayerTimes = uiState.prayerTimes,
                         cityName = uiState.cityName,
+                        latitude = uiState.latitude,
+                        longitude = uiState.longitude,
                         locationText = uiState.locationText,
                         qiblaDegree = uiState.qiblaDegree,
                         isLoading = uiState.isLoading,
+                        isDarkTheme = uiState.isDarkTheme,
                         onSearchCity = { cityName -> viewModel.searchCity(this, cityName) },
-                        onUseGps = { checkPermissionsAndFetch() }
+                        onUseGps = { checkPermissionsAndFetch() },
+                        onToggleTheme = { viewModel.toggleTheme(this) }
                     )
                 }
             }
@@ -120,11 +127,15 @@ class MainActivity : ComponentActivity() {
 fun PrayerScreen(
     prayerTimes: PrayerTimes?,
     cityName: String,
+    latitude: Double,
+    longitude: Double,
     locationText: String,
     qiblaDegree: Double,
     isLoading: Boolean,
+    isDarkTheme: Boolean,
     onSearchCity: (String) -> Unit,
-    onUseGps: () -> Unit
+    onUseGps: () -> Unit,
+    onToggleTheme: () -> Unit
 ) {
     var currentTimeMillis by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var showSearchDialog by remember { mutableStateOf(false) }
@@ -188,116 +199,121 @@ fun PrayerScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(WebBackground)
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        // Header Surface matching prayer card background
+        // Top App Bar (Background aplikasi)
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            color = WebSurface,
-            shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Jadwal Sholat",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Row {
+                    IconButton(onClick = { onUseGps() }) {
+                        Icon(
+                            Icons.Default.MyLocation,
+                            contentDescription = "GPS",
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                    IconButton(onClick = { showSearchDialog = true }) {
+                        Icon(
+                            Icons.Default.LocationOn,
+                            contentDescription = "Cari Kota",
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                    IconButton(onClick = { showQiblaDialog = true }) {
+                        Icon(
+                            Icons.Default.Explore,
+                            contentDescription = "Arah Kiblat",
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                    IconButton(onClick = { onToggleTheme() }) {
+                        Icon(
+                            imageVector = if (isDarkTheme) Icons.Default.WbSunny else Icons.Default.NightsStay,
+                            contentDescription = "Ganti Tema",
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                }
+            }
+        }
+
+        // Info Header Lokasi & Tanggal (Background Surface, Kotak Tanpa Rounded)
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.surface,
+            shape = RectangleShape
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp)
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Top App Bar
+                Text(
+                    text = cityName,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "Jadwal Sholat",
-                        style = MaterialTheme.typography.titleLarge,
-                        color = WebTextPrimary,
-                        fontWeight = FontWeight.Bold
+                        text = gregorianDateString,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-
-                    Row {
-                        IconButton(onClick = { onUseGps() }) {
-                            Icon(
-                                Icons.Default.MyLocation,
-                                contentDescription = "GPS",
-                                tint = WebSecondary
-                            )
-                        }
-                        IconButton(onClick = { showSearchDialog = true }) {
-                            Icon(
-                                Icons.Default.LocationOn,
-                                contentDescription = "Cari Kota",
-                                tint = WebSecondary
-                            )
-                        }
-                        IconButton(onClick = { showQiblaDialog = true }) {
-                            Icon(
-                                Icons.Default.Explore,
-                                contentDescription = "Arah Kiblat",
-                                tint = WebSecondary
-                            )
-                        }
+                    if (hijriDateString.isNotEmpty()) {
+                        Text(
+                            text = "  |  ",
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
+                        Text(
+                            text = hijriDateString,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
 
-                // City Name & Dates
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = cityName,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = WebTextPrimary,
-                        textAlign = TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = gregorianDateString,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = WebTextSecondary
+                if (isLoading) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(14.dp),
+                            color = MaterialTheme.colorScheme.secondary,
+                            strokeWidth = 2.dp
                         )
-                        if (hijriDateString.isNotEmpty()) {
-                            Text(
-                                text = "  |  ",
-                                fontSize = 13.sp,
-                                color = WebTextSecondary.copy(alpha = 0.6f)
-                            )
-                            Text(
-                                text = hijriDateString,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = WebTextSecondary
-                            )
-                        }
-                    }
-
-                    if (isLoading) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(14.dp),
-                                color = WebSecondary,
-                                strokeWidth = 2.dp
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = locationText,
-                                fontSize = 12.sp,
-                                color = WebTextSecondary
-                            )
-                        }
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = locationText,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }
@@ -317,19 +333,21 @@ fun PrayerScreen(
                 val nextPrayer = prayerTimes.nextPrayer()
                 val currentPrayer = prayerTimes.currentPrayer()
 
-                // Countdown Card matching web design
-                if (nextPrayer != Prayer.NONE) {
-                    val nextTime = prayerTimes.timeForPrayer(nextPrayer)
-                    val diff = nextTime.time - currentTimeMillis
-
-                    if (diff > 0) {
-                        val hours = (diff / (1000 * 60 * 60)) % 24
-                        val minutes = (diff / (1000 * 60)) % 60
-                        val seconds = (diff / 1000) % 60
-
-                        val countdownStr = String.format(Locale.US, "-%02d : %02d : %02d", hours, minutes, seconds)
-
-                        val nextPrayerName = when (nextPrayer) {
+                // Countdown Card (termasuk Subuh besok jika setelah Isya)
+                val (nextPrayerName, nextTimeDate) = remember(prayerTimes, currentTimeMillis / 1000) {
+                    val nextP = prayerTimes.nextPrayer()
+                    if (nextP == Prayer.NONE) {
+                        val tomorrow = Calendar.getInstance().apply {
+                            add(Calendar.DAY_OF_YEAR, 1)
+                        }.time
+                        val tomorrowPrayerTimes = PrayerCalculator.calculatePrayerTimes(
+                            latitude = latitude,
+                            longitude = longitude,
+                            date = tomorrow
+                        )
+                        Pair("Subuh (Besok)", tomorrowPrayerTimes.fajr)
+                    } else {
+                        val name = when (nextP) {
                             Prayer.FAJR -> "Subuh"
                             Prayer.SUNRISE -> "Syuruq"
                             Prayer.DHUHR -> "Dzuhur"
@@ -338,13 +356,26 @@ fun PrayerScreen(
                             Prayer.ISHA -> "Isya"
                             else -> "Sholat"
                         }
+                        Pair(name, prayerTimes.timeForPrayer(nextP))
+                    }
+                }
+
+                if (nextTimeDate != null) {
+                    val diff = nextTimeDate.time - currentTimeMillis
+
+                    if (diff > 0) {
+                        val hours = (diff / (1000 * 60 * 60)) % 24
+                        val minutes = (diff / (1000 * 60)) % 60
+                        val seconds = (diff / 1000) % 60
+
+                        val countdownStr = String.format(Locale.US, "-%02d:%02d:%02d", hours, minutes, seconds)
 
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(bottom = 16.dp),
                             shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = WebPrimaryContainer),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
                             border = BorderStroke(1.dp, WebBorderGreen)
                         ) {
                             Row(
@@ -356,7 +387,7 @@ fun PrayerScreen(
                                 Icon(
                                     imageVector = Icons.Default.Timer,
                                     contentDescription = null,
-                                    tint = WebSecondary,
+                                    tint = MaterialTheme.colorScheme.secondary,
                                     modifier = Modifier.size(24.dp)
                                 )
                                 Spacer(modifier = Modifier.width(12.dp))
@@ -364,7 +395,7 @@ fun PrayerScreen(
                                     text = nextPrayerName,
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = WebOnPrimaryContainer
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
                                 )
                                 Spacer(modifier = Modifier.weight(1f))
                                 Text(
@@ -372,7 +403,7 @@ fun PrayerScreen(
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Black,
                                     fontFamily = FontFamily.Monospace,
-                                    color = WebPrimary
+                                    color = MaterialTheme.colorScheme.primary
                                 )
                             }
                         }
@@ -399,7 +430,7 @@ fun PrayerScreen(
                         .height(200.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = WebPrimary)
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             }
 
@@ -410,7 +441,7 @@ fun PrayerScreen(
 
 @Composable
 fun WebPrayerCard(name: String, time: String, isActive: Boolean) {
-    val cardBackground = if (isActive) WebPrimaryContainer else WebSurface
+    val cardBackground = if (isActive) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
     val cardBorder = if (isActive) BorderStroke(1.dp, WebBorderGreen) else null
 
     Card(
@@ -431,7 +462,7 @@ fun WebPrayerCard(name: String, time: String, isActive: Boolean) {
             PrayerIcon(
                 prayerKey = name,
                 modifier = Modifier.size(26.dp),
-                tint = WebSecondary
+                tint = MaterialTheme.colorScheme.secondary
             )
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -441,18 +472,18 @@ fun WebPrayerCard(name: String, time: String, isActive: Boolean) {
                 text = name,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = if (isActive) WebOnPrimaryContainer else WebTextPrimary
+                color = if (isActive) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
             )
 
             if (isActive) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Surface(
-                    color = WebPrimary,
+                    color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
                         text = "SEKARANG",
-                        color = WebOnPrimary,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
@@ -467,7 +498,7 @@ fun WebPrayerCard(name: String, time: String, isActive: Boolean) {
                 text = time,
                 fontSize = 20.sp,
                 fontWeight = if (isActive) FontWeight.ExtraBold else FontWeight.SemiBold,
-                color = if (isActive) WebPrimary else WebTextPrimary
+                color = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -484,12 +515,12 @@ fun CitySearchDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = WebSurface,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.LocationOn, contentDescription = null, tint = WebSecondary)
+                Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.secondary)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Pilih Kota", color = WebTextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text("Pilih Kota", color = MaterialTheme.colorScheme.onSurface, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
         },
         text = {
@@ -497,14 +528,14 @@ fun CitySearchDialog(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = onQueryChange,
-                    placeholder = { Text("Ketik nama kota (misal: Bandung)", color = WebTextSecondary) },
+                    placeholder = { Text("Ketik nama kota (misal: Bandung)", color = MaterialTheme.colorScheme.onSurfaceVariant) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = WebPrimary,
-                        unfocusedBorderColor = WebSurfaceVariant,
-                        focusedTextColor = WebTextPrimary,
-                        unfocusedTextColor = WebTextPrimary
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                     ),
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(onSearch = { onSearch(searchQuery) })
@@ -512,19 +543,19 @@ fun CitySearchDialog(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text("Kota Populer:", fontSize = 13.sp, color = WebTextSecondary, fontWeight = FontWeight.Medium)
+                Text("Kota Populer:", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Medium)
                 Spacer(modifier = Modifier.height(8.dp))
 
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     items(popularCities) { city ->
                         Surface(
-                            color = WebSurfaceVariant,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
                             shape = RoundedCornerShape(20.dp),
                             modifier = Modifier.clickable { onSearch(city) }
                         ) {
                             Text(
                                 text = city,
-                                color = WebTextPrimary,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontSize = 13.sp,
                                 modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp)
                             )
@@ -536,7 +567,7 @@ fun CitySearchDialog(
         confirmButton = {
             Button(
                 onClick = { onSearch(searchQuery) },
-                colors = ButtonDefaults.buttonColors(containerColor = WebPrimary, contentColor = WebOnPrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary)
             ) {
                 Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(6.dp))
@@ -545,8 +576,35 @@ fun CitySearchDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Batal", color = WebTextSecondary)
+                Text("Batal", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     )
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun PrayerScreenPreview() {
+    val sampleCoordinates = Coordinates(-7.8014, 110.3644)
+    val sampleDate = com.batoulapps.adhan.data.DateComponents.from(Date())
+    val sampleParams = PrayerCalculator.getParameters(0.0)
+    val samplePrayerTimes = PrayerTimes(sampleCoordinates, sampleDate, sampleParams)
+
+    JadwalSholatIndonesiaTheme(darkTheme = true) {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            PrayerScreen(
+                prayerTimes = samplePrayerTimes,
+                cityName = "Yogyakarta",
+                latitude = -7.8014,
+                longitude = 110.3644,
+                locationText = "Yogyakarta (0 mdpl)",
+                qiblaDegree = 294.5,
+                isLoading = false,
+                isDarkTheme = true,
+                onSearchCity = {},
+                onUseGps = {},
+                onToggleTheme = {}
+            )
+        }
+    }
 }

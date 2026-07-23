@@ -31,12 +31,21 @@ class LocationPreferences(context: Context) {
         return UserLocation(lat, lng, city, elevation)
     }
 
+    fun saveDarkTheme(isDark: Boolean) {
+        prefs.edit().putBoolean(KEY_DARK_THEME, isDark).apply()
+    }
+
+    fun isDarkTheme(): Boolean {
+        return prefs.getBoolean(KEY_DARK_THEME, true)
+    }
+
     companion object {
         private const val PREFS_NAME = "jadwal_sholat_prefs"
         private const val KEY_LAT = "latitude"
         private const val KEY_LNG = "longitude"
         private const val KEY_CITY = "city_name"
         private const val KEY_ELEVATION = "elevation"
+        private const val KEY_DARK_THEME = "is_dark_theme"
 
         const val DEFAULT_LAT = -7.8014
         const val DEFAULT_LNG = 110.3644

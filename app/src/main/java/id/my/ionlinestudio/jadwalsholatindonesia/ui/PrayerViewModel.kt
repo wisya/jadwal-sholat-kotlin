@@ -27,8 +27,11 @@ data class PrayerUiState(
     val prayerTimes: PrayerTimes? = null,
     val locationText: String = "Mencari lokasi...",
     val cityName: String = "Yogyakarta",
+    val latitude: Double = -7.8014,
+    val longitude: Double = 110.3644,
     val isLoading: Boolean = false,
-    val qiblaDegree: Double = 0.0
+    val qiblaDegree: Double = 0.0,
+    val isDarkTheme: Boolean = true
 )
 
 class PrayerViewModel : ViewModel() {
@@ -39,6 +42,7 @@ class PrayerViewModel : ViewModel() {
     fun loadSavedLocation(context: Context) {
         val locationPrefs = LocationPreferences(context)
         val userLocation = locationPrefs.getLocation()
+        val isDark = locationPrefs.isDarkTheme()
 
         val prayerTimes = PrayerCalculator.calculatePrayerTimes(
             latitude = userLocation.latitude,
@@ -52,11 +56,20 @@ class PrayerViewModel : ViewModel() {
             it.copy(
                 prayerTimes = prayerTimes,
                 cityName = userLocation.cityName,
+                latitude = userLocation.latitude,
+                longitude = userLocation.longitude,
                 locationText = "${userLocation.cityName} (${userLocation.elevation.toInt()} mdpl)",
                 qiblaDegree = qibla,
+                isDarkTheme = isDark,
                 isLoading = false
             )
         }
+    }
+
+    fun toggleTheme(context: Context) {
+        val newDarkState = !_uiState.value.isDarkTheme
+        LocationPreferences(context).saveDarkTheme(newDarkState)
+        _uiState.update { it.copy(isDarkTheme = newDarkState) }
     }
 
     fun fetchLocationAndPrayers(context: Context) {
@@ -163,6 +176,8 @@ class PrayerViewModel : ViewModel() {
                 it.copy(
                     prayerTimes = prayerTimes,
                     cityName = cityName,
+                    latitude = lat,
+                    longitude = lng,
                     locationText = "$cityName (${elevation.toInt()} mdpl)",
                     qiblaDegree = qibla,
                     isLoading = false

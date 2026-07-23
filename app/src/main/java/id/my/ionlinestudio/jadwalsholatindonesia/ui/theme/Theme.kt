@@ -2,8 +2,8 @@ package id.my.ionlinestudio.jadwalsholatindonesia.ui.theme
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 
 private val WebDarkColorScheme = darkColorScheme(
     primary = WebPrimary,
@@ -20,13 +20,30 @@ private val WebDarkColorScheme = darkColorScheme(
     onSurfaceVariant = WebTextSecondary
 )
 
+private val WebLightColorScheme = lightColorScheme(
+    primary = WebLightPrimary,
+    onPrimary = WebLightOnPrimary,
+    primaryContainer = WebLightPrimaryContainer,
+    onPrimaryContainer = WebLightOnPrimaryContainer,
+    secondary = WebLightSecondary,
+    onSecondary = WebLightOnSecondary,
+    background = WebLightBackground,
+    surface = WebLightSurface,
+    surfaceVariant = WebLightSurfaceVariant,
+    onBackground = WebLightTextPrimary,
+    onSurface = WebLightTextPrimary,
+    onSurfaceVariant = WebLightTextSecondary
+)
+
 @Composable
 fun JadwalSholatIndonesiaTheme(
     darkTheme: Boolean = true,
     content: @Composable () -> Unit
 ) {
+    val colorScheme = if (darkTheme) WebDarkColorScheme else WebLightColorScheme
+
     MaterialTheme(
-        colorScheme = WebDarkColorScheme,
+        colorScheme = colorScheme,
         typography = Typography,
         content = content
     )
