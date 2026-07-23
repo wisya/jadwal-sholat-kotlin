@@ -25,8 +25,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -122,7 +121,7 @@ fun QiblaDialogContent(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Explore, contentDescription = null, tint = WebPrimary)
+                    Icon(Icons.Default.Explore, contentDescription = null, tint = WebSecondary)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Arah Kiblat",
@@ -132,7 +131,7 @@ fun QiblaDialogContent(
                     )
                 }
                 IconButton(onClick = onDismiss) {
-                    Icon(Icons.Default.Close, contentDescription = "Tutup", tint = WebTextSecondary)
+                    Icon(Icons.Default.Close, contentDescription = "Tutup", tint = WebSecondary)
                 }
             }
         },
@@ -156,28 +155,31 @@ fun QiblaDialogContent(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Compass Wrapper (220dp x 220dp)
+                // Compass Wrapper (230dp x 230dp)
                 Box(
-                    modifier = Modifier.size(220.dp),
+                    modifier = Modifier.size(230.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    // Static Crosshairs
+                    // Prominent Crosshairs Guide Lines (Vertical & Horizontal Alignment Lines)
                     Canvas(modifier = Modifier.fillMaxSize()) {
-                        val strokeWidth = 1.dp.toPx()
-                        val color = WebOutline.copy(alpha = 0.3f)
-                        // Vertical crosshair
+                        val strokeWidth = 2.dp.toPx()
+                        val crosshairColor = WebSecondary.copy(alpha = 0.7f)
+
+                        // Vertical Crosshair Line (Top to Bottom)
                         drawLine(
-                            color = color,
+                            color = crosshairColor,
                             start = Offset(size.width / 2, 0f),
                             end = Offset(size.width / 2, size.height),
-                            strokeWidth = strokeWidth
+                            strokeWidth = strokeWidth,
+                            pathEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 8f), 0f)
                         )
-                        // Horizontal crosshair
+                        // Horizontal Crosshair Line (Left to Right)
                         drawLine(
-                            color = color,
+                            color = crosshairColor,
                             start = Offset(0f, size.height / 2),
                             end = Offset(size.width, size.height / 2),
-                            strokeWidth = strokeWidth
+                            strokeWidth = strokeWidth,
+                            pathEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 8f), 0f)
                         )
                     }
 
@@ -185,10 +187,11 @@ fun QiblaDialogContent(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
+                            .padding(8.dp)
                             .rotate(animatedAzimuth)
                             .clip(CircleShape)
                             .background(WebSurfaceVariant)
-                            .border(5.dp, WebPrimary, CircleShape),
+                            .border(4.dp, WebPrimary, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         // Cardinal Marks
@@ -281,7 +284,7 @@ fun QiblaDialogContent(
                         Box(
                             modifier = Modifier
                                 .size(10.dp)
-                                .background(WebPrimary, CircleShape)
+                                .background(WebSecondary, CircleShape)
                         )
                     }
                 }
@@ -311,7 +314,7 @@ fun QiblaDialogContent(
                             checked = isLiveCompass,
                             onCheckedChange = { isLiveCompass = it },
                             colors = SwitchDefaults.colors(
-                                checkedThumbColor = WebPrimary,
+                                checkedThumbColor = WebSecondary,
                                 checkedTrackColor = WebPrimaryContainer
                             )
                         )
@@ -331,12 +334,12 @@ fun QiblaDialogContent(
                     Icon(
                         imageVector = Icons.Default.Info,
                         contentDescription = null,
-                        tint = WebTextSecondary,
+                        tint = WebSecondary,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = if (isLiveCompass) "Pegang HP mendatar (sejajar lantai). Putar badan hingga ikon Ka'bah menunjuk ke atas." else "Mode Statis: Utara (0°/Atas), Timur (90°/Kanan), Selatan (180°/Bawah), Barat (270°/Kiri).",
+                        text = if (isLiveCompass) "Pegang HP mendatar (sejajar lantai). Putar badan hingga ikon Ka'bah menunjuk ke atas sejajar garis vertikal." else "Mode Statis: Garis Oranye putus-putus membantu meluruskan posisi HP dengan arah mata angin.",
                         fontSize = 11.sp,
                         color = WebTextSecondary,
                         lineHeight = 14.sp

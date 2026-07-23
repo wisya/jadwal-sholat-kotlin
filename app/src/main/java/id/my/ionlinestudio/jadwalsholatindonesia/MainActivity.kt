@@ -190,10 +190,10 @@ fun PrayerScreen(
             .fillMaxSize()
             .background(WebBackground)
     ) {
-        // Header Green Container matching web
+        // Header Surface matching prayer card background
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            color = WebHeaderBg,
+            color = WebSurface,
             shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
         ) {
             Column(
@@ -212,7 +212,7 @@ fun PrayerScreen(
                     Text(
                         text = "Jadwal Sholat",
                         style = MaterialTheme.typography.titleLarge,
-                        color = Color.White,
+                        color = WebTextPrimary,
                         fontWeight = FontWeight.Bold
                     )
 
@@ -221,21 +221,21 @@ fun PrayerScreen(
                             Icon(
                                 Icons.Default.MyLocation,
                                 contentDescription = "GPS",
-                                tint = WebHeaderText
+                                tint = WebSecondary
                             )
                         }
                         IconButton(onClick = { showSearchDialog = true }) {
                             Icon(
                                 Icons.Default.LocationOn,
                                 contentDescription = "Cari Kota",
-                                tint = WebHeaderText
+                                tint = WebSecondary
                             )
                         }
                         IconButton(onClick = { showQiblaDialog = true }) {
                             Icon(
                                 Icons.Default.Explore,
                                 contentDescription = "Arah Kiblat",
-                                tint = WebHeaderText
+                                tint = WebSecondary
                             )
                         }
                     }
@@ -252,7 +252,7 @@ fun PrayerScreen(
                         text = cityName,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White,
+                        color = WebTextPrimary,
                         textAlign = TextAlign.Center
                     )
 
@@ -266,19 +266,19 @@ fun PrayerScreen(
                             text = gregorianDateString,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
-                            color = WebHeaderText
+                            color = WebTextSecondary
                         )
                         if (hijriDateString.isNotEmpty()) {
                             Text(
                                 text = "  |  ",
                                 fontSize = 13.sp,
-                                color = WebHeaderText.copy(alpha = 0.6f)
+                                color = WebTextSecondary.copy(alpha = 0.6f)
                             )
                             Text(
                                 text = hijriDateString,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = WebHeaderText
+                                color = WebTextSecondary
                             )
                         }
                     }
@@ -288,14 +288,14 @@ fun PrayerScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(14.dp),
-                                color = WebHeaderText,
+                                color = WebSecondary,
                                 strokeWidth = 2.dp
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = locationText,
                                 fontSize = 12.sp,
-                                color = WebHeaderText
+                                color = WebTextSecondary
                             )
                         }
                     }
@@ -356,7 +356,7 @@ fun PrayerScreen(
                                 Icon(
                                     imageVector = Icons.Default.Timer,
                                     contentDescription = null,
-                                    tint = WebPrimary,
+                                    tint = WebSecondary,
                                     modifier = Modifier.size(24.dp)
                                 )
                                 Spacer(modifier = Modifier.width(12.dp))
@@ -487,7 +487,7 @@ fun CitySearchDialog(
         containerColor = WebSurface,
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.LocationOn, contentDescription = null, tint = WebPrimary)
+                Icon(Icons.Default.LocationOn, contentDescription = null, tint = WebSecondary)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Pilih Kota", color = WebTextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
