@@ -432,10 +432,13 @@ fun PrayerScreen(
                     }
                 }
 
+                // Syuruq hanya aktif selama 15 menit pertama
+                val isSyuruqActive = currentPrayer == Prayer.SUNRISE && (currentTimeMillis - prayerTimes.sunrise.time <= 15 * 60 * 1000L)
+
                 // Prayer Cards List matching web styling
                 val prayerList = listOf(
                     Triple("Subuh", formatter.format(prayerTimes.fajr), currentPrayer == Prayer.FAJR),
-                    Triple("Syuruq", formatter.format(prayerTimes.sunrise), currentPrayer == Prayer.SUNRISE),
+                    Triple("Syuruq", formatter.format(prayerTimes.sunrise), isSyuruqActive),
                     Triple("Dzuhur", formatter.format(prayerTimes.dhuhr), currentPrayer == Prayer.DHUHR),
                     Triple("Ashar", formatter.format(prayerTimes.asr), currentPrayer == Prayer.ASR),
                     Triple("Maghrib", formatter.format(prayerTimes.maghrib), currentPrayer == Prayer.MAGHRIB),
